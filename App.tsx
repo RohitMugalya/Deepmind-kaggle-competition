@@ -1,23 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PromptForm } from './components/PromptForm';
 import { CodeView } from './components/CodeView';
 import { PreviewPlayer } from './components/PreviewPlayer';
 import { generateMotionScript } from './services/geminiService';
 import { GeneratedContent, TabView } from './types';
-import { Code, Play, Terminal, Zap, FileJson, Info } from 'lucide-react';
+import { Code, Play, Terminal, Zap, FileJson, Info, LayoutTemplate } from 'lucide-react';
 
 export default function App() {
   const [content, setContent] = useState<GeneratedContent | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabView>(TabView.PREVIEW);
-  const [apiKeyMissing, setApiKeyMissing] = useState(false);
-
-  useEffect(() => {
-    // Check for API key existence (simulated check as we can't inspect process.env in browser easily without actually using it, 
-    // but the service will fail if it's empty during call. Here we just set up initial state.)
-    // In a real scenario, we assume the environment is set up.
-  }, []);
 
   const handleGenerate = async (prompt: string) => {
     setIsLoading(true);
@@ -60,7 +53,7 @@ export default makeScene2D(function* (view) {
       
       {/* Header */}
       <header className="border-b border-gray-800 bg-gray-950/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-full mx-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
               <Zap size={20} className="text-white" fill="currentColor" />
@@ -72,7 +65,7 @@ export default makeScene2D(function* (view) {
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <span className="hidden sm:inline-flex items-center gap-1">
               <Terminal size={14} />
-              <span>v1.0.0</span>
+              <span>v1.1.0</span>
             </span>
             <a 
                 href="https://motioncanvas.io/docs/" 
@@ -87,109 +80,110 @@ export default makeScene2D(function* (view) {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full p-4 gap-6">
+      {/* Main Content - Workflow Layout */}
+      <main className="flex-1 flex flex-col lg:flex-row w-full p-4 gap-4 overflow-hidden h-[calc(100vh-64px)]">
         
-        {/* Prompt Section */}
-        <section className="w-full max-w-3xl mx-auto flex flex-col gap-4 mt-8">
-          <div className="text-center mb-4 space-y-2">
-            <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
-              Describe your animation.
-            </h2>
-            <p className="text-gray-400 text-lg">
-              Generate <span className="text-cyan-400">Motion Canvas</span> scripts and preview them instantly.
-            </p>
+        {/* Left Sidebar: Controls & Pipeline */}
+        <section className="lg:w-1/3 xl:w-1/4 flex flex-col gap-4 bg-gray-900/30 rounded-lg p-4 border border-gray-800/50">
+          <div className="flex items-center gap-2 mb-2 text-gray-400 text-xs font-bold uppercase tracking-wider">
+             <LayoutTemplate size={14} />
+             <span>Workflow Pipeline</span>
           </div>
-          
-          <PromptForm onSubmit={handleGenerate} isLoading={isLoading} />
-          
-          {error && (
-            <div className="bg-red-950/30 border border-red-900/50 text-red-300 px-4 py-3 rounded-lg text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-              <Info size={16} />
-              {error}
-            </div>
-          )}
-        </section>
 
-        {/* Workspace */}
-        <section className="flex-1 flex flex-col lg:flex-row gap-6 min-h-[500px]">
-            {/* Left/Top: Explanation & Tabs */}
-            <div className="lg:w-1/3 flex flex-col gap-4">
-                 {/* Tabs Mobile only (or general control) */}
-                 <div className="flex p-1 bg-gray-900 rounded-lg border border-gray-800">
+          <div className="flex flex-col gap-6 flex-1">
+             {/* Step 1: Input */}
+             <div className="space-y-2">
+                 <label className="text-sm font-medium text-gray-300">1. Define Animation</label>
+                 <PromptForm onSubmit={handleGenerate} isLoading={isLoading} />
+                 <p className="text-xs text-gray-500">Describe the concept, objects, and motion.</p>
+             </div>
+
+             {/* Step 2: Output Controls */}
+             <div className="space-y-2">
+                 <label className="text-sm font-medium text-gray-300">2. View Output</label>
+                 <div className="grid grid-cols-2 gap-2">
                     <button
                         onClick={() => setActiveTab(TabView.PREVIEW)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
+                        className={`flex items-center justify-center gap-2 py-3 rounded-md text-sm font-medium transition-all border ${
                             activeTab === TabView.PREVIEW 
-                            ? 'bg-gray-800 text-cyan-400 shadow-sm' 
-                            : 'text-gray-500 hover:text-gray-300'
+                            ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400 shadow-sm' 
+                            : 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
                         }`}
                     >
                         <Play size={16} /> Preview
                     </button>
                     <button
                         onClick={() => setActiveTab(TabView.CODE)}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-md text-sm font-medium transition-all ${
+                        className={`flex items-center justify-center gap-2 py-3 rounded-md text-sm font-medium transition-all border ${
                             activeTab === TabView.CODE 
-                            ? 'bg-gray-800 text-cyan-400 shadow-sm' 
-                            : 'text-gray-500 hover:text-gray-300'
+                            ? 'bg-blue-500/10 border-blue-500/50 text-blue-400 shadow-sm' 
+                            : 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
                         }`}
                     >
-                        <Code size={16} /> Source Code
+                        <Code size={16} /> Code
                     </button>
                 </div>
+             </div>
 
-                {/* AI Explanation Card */}
-                <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-5 flex-1">
-                    <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-3">
-                        AI Reasoning
-                    </h3>
-                    <div className="prose prose-invert prose-sm max-w-none text-gray-400">
-                        {isLoading ? (
-                            <div className="space-y-3 animate-pulse">
-                                <div className="h-4 bg-gray-800 rounded w-3/4"></div>
-                                <div className="h-4 bg-gray-800 rounded w-full"></div>
-                                <div className="h-4 bg-gray-800 rounded w-5/6"></div>
-                            </div>
-                        ) : content ? (
-                           <p>{content.explanation}</p>
-                        ) : (
-                            <p>Enter a prompt above to generate a Motion Canvas script. The AI will provide both the source code and a lightweight preview.</p>
-                        )}
+             {/* Status / Error Area */}
+             <div className="flex-1 bg-gray-950/50 rounded-md border border-gray-800 p-4 overflow-auto">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">System Status</h3>
+                {isLoading ? (
+                    <div className="flex items-center gap-2 text-cyan-400 text-sm animate-pulse">
+                        <Zap size={14} />
+                        Generating pipeline...
                     </div>
-                </div>
-            </div>
-
-            {/* Right/Bottom: Main Viewport */}
-            <div className="lg:w-2/3 flex flex-col min-h-[400px]">
-                {activeTab === TabView.PREVIEW ? (
-                    <div className="h-full rounded-lg overflow-hidden ring-1 ring-gray-800 shadow-2xl bg-gray-900">
-                        {isLoading ? (
-                           <div className="h-full flex flex-col items-center justify-center text-gray-500 space-y-4">
-                                <div className="relative">
-                                    <div className="w-12 h-12 border-4 border-gray-800 border-t-cyan-500 rounded-full animate-spin"></div>
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="w-2 h-2 bg-cyan-500 rounded-full"></div>
-                                    </div>
-                                </div>
-                                <p className="animate-pulse font-mono text-sm">Generating scene...</p>
-                           </div>
-                        ) : (
-                            <PreviewPlayer previewCode={content?.previewCode || ''} />
-                        )}
+                ) : error ? (
+                    <div className="flex items-start gap-2 text-red-400 text-sm">
+                        <Info size={14} className="mt-0.5 shrink-0" />
+                        <span>{error}</span>
+                    </div>
+                ) : content ? (
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-2 text-green-400 text-sm">
+                            <span className="w-2 h-2 rounded-full bg-green-400"></span>
+                            Generation complete
+                        </div>
+                        <div className="text-xs text-gray-500 font-mono">
+                            Time: {new Date().toLocaleTimeString()}
+                        </div>
                     </div>
                 ) : (
-                    <div className="h-full rounded-lg overflow-hidden ring-1 ring-gray-800 shadow-2xl">
-                         {isLoading ? (
-                             <div className="h-full flex items-center justify-center bg-gray-950">
-                                 <p className="text-gray-500 animate-pulse font-mono">Writing code...</p>
-                             </div>
-                         ) : (
-                            <CodeView code={content?.motionCanvasCode || placeholderCode} />
-                         )}
+                    <div className="text-gray-600 text-sm italic">
+                        Ready for input.
                     </div>
                 )}
-            </div>
+             </div>
+          </div>
+        </section>
+
+        {/* Right Area: Workspace Viewport */}
+        <section className="flex-1 flex flex-col min-h-[400px]">
+            {activeTab === TabView.PREVIEW ? (
+                <div className="h-full rounded-lg overflow-hidden ring-1 ring-gray-800 shadow-2xl bg-gray-900 relative">
+                    {isLoading ? (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 space-y-4 bg-gray-900/90 z-10 backdrop-blur-sm">
+                            <div className="relative">
+                                <div className="w-16 h-16 border-4 border-gray-800 border-t-cyan-500 rounded-full animate-spin"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse"></div>
+                                </div>
+                            </div>
+                            <p className="animate-pulse font-mono text-sm tracking-widest uppercase text-cyan-500">Synthesizing</p>
+                        </div>
+                    ) : null}
+                    <PreviewPlayer previewCode={content?.previewCode || ''} />
+                </div>
+            ) : (
+                <div className="h-full rounded-lg overflow-hidden ring-1 ring-gray-800 shadow-2xl relative">
+                     {isLoading ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-950 z-10">
+                             <p className="text-gray-500 animate-pulse font-mono">Writing source code...</p>
+                        </div>
+                     ) : null}
+                    <CodeView code={content?.motionCanvasCode || placeholderCode} />
+                </div>
+            )}
         </section>
       </main>
     </div>

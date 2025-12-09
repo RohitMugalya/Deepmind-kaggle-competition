@@ -1,7 +1,6 @@
 export interface GeneratedContent {
   motionCanvasCode: string;
   previewCode: string; // A JavaScript function body for immediate canvas preview
-  explanation: string;
 }
 
 export interface AnimationState {
