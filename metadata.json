@@ -1,0 +1,5 @@
+{
+  "name": "MotionGen AI",
+  "description": "A workflow automation pipeline that converts text prompts into Motion Canvas scripts and previews them instantly.",
+  "requestFramePermissions": []
+}
